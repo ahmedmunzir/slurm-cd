@@ -30,11 +30,7 @@ Works with any job available through `scontrol`, including running and pending j
 
 ## User Installation
 
-Clone the repository:
-
-```bash
-git clone <repository-url> ~/scd
-```
+Clone the repository
 
 Add the following to your `~/.bashrc`:
 
