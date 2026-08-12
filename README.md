@@ -2,27 +2,6 @@
 
 A small Bash utility for jumping to the working directory of a pending or running Slurm job.
 
-## Usage
-
-```bash
-scd JOBID
-```
-
-Print the working directory without changing directory:
-
-```bash
-scd -p JOBID
-scd --print JOBID
-```
-
-Show help:
-
-```bash
-scd --help
-```
-
-Works with any job available through `scontrol`, including running and pending jobs.
-
 ## Requirements
 
 * Bash
@@ -59,6 +38,38 @@ Users will receive `scd` on their next login. To load it immediately:
 ```bash
 source /etc/profile.d/scd.sh
 ```
+
+## Usage
+
+```bash
+scd JOBID
+```
+
+Print the working directory without changing directory:
+
+```bash
+scd -p JOBID
+scd --print JOBID
+```
+
+Show help:
+
+```bash
+scd --help
+```
+
+Works with any job available through `scontrol`, including running and pending jobs.
+
+
+Use `TAB` after `scd` to complete job IDs for RUNNING and PENDING jobs currently visible through Slurm:
+
+```bash
+scd <TAB>
+scd 11<TAB>
+scd -p <TAB>
+```
+
+Completion uses `squeue`, which is optional. If it is unavailable, normal `scd JOBID` functionality still works.
 
 ## Notes
 

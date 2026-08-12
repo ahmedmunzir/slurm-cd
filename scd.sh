@@ -22,7 +22,8 @@ scd() {
                 '       scd --print JOBID' \
                 '       scd -h | --help' \
                 '' \
-                "Change to a Slurm job's WorkDir, or print it with -p/--print."
+                "Change to a Slurm job's WorkDir, or print it with -p/--print." \
+                'Bash tab completion is available for RUNNING and PENDING jobs.'
             return 0
             ;;
         -p|--print)
@@ -95,3 +96,44 @@ scd() {
         return 1
     fi
 }
+
+_scd_completion() {
+    local current=${COMP_WORDS[COMP_CWORD]}
+    local jobid
+    local jobids
+    local option
+
+    COMPREPLY=()
+
+    if [ "$COMP_CWORD" -eq 1 ] && [[ $current == -* ]]; then
+        for option in -p --print -h --help; do
+            [[ $option == "$current"* ]] && COMPREPLY+=("$option")
+        done
+        return 0
+    fi
+
+    case $COMP_CWORD in
+        1) ;;
+        2)
+            case ${COMP_WORDS[1]} in
+                -p|--print) ;;
+                *) return 0 ;;
+            esac
+            ;;
+        *) return 0 ;;
+    esac
+
+    command -v squeue >/dev/null 2>&1 || return 0
+    if ! jobids=$(command squeue --all --noheader \
+        --states=RUNNING,PENDING --format='%i' 2>/dev/null); then
+        return 0
+    fi
+
+    while read -r jobid; do
+        [ -n "$jobid" ] &&
+            [[ $jobid == "$current"* ]] &&
+            COMPREPLY+=("$jobid")
+    done <<< "$jobids"
+}
+
+complete -F _scd_completion scd
