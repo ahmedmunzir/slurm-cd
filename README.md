@@ -14,7 +14,7 @@ Clone the repository
 Add the following to your `~/.bashrc`:
 
 ```bash
-source ~/scd/scd.sh
+source path-to/scd/scd.sh
 ```
 
 Then reload your shell:
