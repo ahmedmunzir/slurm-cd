@@ -7,6 +7,8 @@ scd() {
     local mode=cd
     local jobid=
     local jobinfo=
+    local sacctinfo=
+    local sacct_workdir=
     local workdir=
 
     case "${1-}" in
@@ -23,6 +25,7 @@ scd() {
                 '       scd -h | --help' \
                 '' \
                 "Change to a Slurm job's WorkDir, or print it with -p/--print." \
+                'Historical jobs use sacct when available.' \
                 'Bash tab completion is available for RUNNING and PENDING jobs.'
             return 0
             ;;
@@ -65,19 +68,32 @@ scd() {
     fi
 
     # Let Slurm validate all supported job identifier forms.
-    if ! jobinfo=$(scontrol show job -o "$jobid" 2>/dev/null) ||
-       [ -z "$jobinfo" ]; then
-        printf 'scd: job not found or unavailable: %s\n' "$jobid" >&2
-        return 1
-    fi
+    if jobinfo=$(scontrol show job -o "$jobid" 2>/dev/null) &&
+       [ -n "$jobinfo" ]; then
+        # In scontrol's one-line output, fields are separated by whitespace.
+        if [[ $jobinfo =~ (^|[[:space:]])WorkDir=([^[:space:]]*) ]]; then
+            workdir=${BASH_REMATCH[2]}
+        fi
 
-    # In scontrol's one-line output, fields are separated by whitespace.
-    if [[ $jobinfo =~ (^|[[:space:]])WorkDir=([^[:space:]]*) ]]; then
-        workdir=${BASH_REMATCH[2]}
+        if [ -z "$workdir" ]; then
+            printf 'scd: WorkDir is missing for job %s\n' "$jobid" >&2
+            return 1
+        fi
+    elif command -v sacct >/dev/null 2>&1 &&
+         sacctinfo=$(command sacct -j "$jobid" -X -n -P -o WorkDir 2>/dev/null); then
+        while IFS= read -r sacct_workdir; do
+            [ -z "$sacct_workdir" ] && continue
+            if [ -z "$workdir" ]; then
+                workdir=$sacct_workdir
+            elif [ "$workdir" != "$sacct_workdir" ]; then
+                printf 'scd: ambiguous WorkDir for job %s\n' "$jobid" >&2
+                return 1
+            fi
+        done <<< "$sacctinfo"
     fi
 
     if [ -z "$workdir" ]; then
-        printf 'scd: WorkDir is missing for job %s\n' "$jobid" >&2
+        printf 'scd: job not found or unavailable: %s\n' "$jobid" >&2
         return 1
     fi
 

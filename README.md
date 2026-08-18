@@ -1,6 +1,6 @@
 # slurm-cd (scd)
 
-A small Bash utility for jumping to the working directory of a pending or running Slurm job.
+A small Bash utility for jumping to the working directory of a Slurm job.
 
 ## Requirements
 
@@ -58,10 +58,10 @@ Show help:
 scd --help
 ```
 
-Works with any job available through `scontrol`, including running and pending jobs.
+Current jobs are resolved through `scontrol`. Historical jobs fall back to `sacct` when available; `sacct` is optional.
 
 
-Use `TAB` after `scd` to complete job IDs for RUNNING and PENDING jobs currently visible through Slurm:
+Use `TAB` after `scd` to complete RUNNING and PENDING job IDs currently visible through Slurm. Historical jobs are not included:
 
 ```bash
 scd <TAB>
